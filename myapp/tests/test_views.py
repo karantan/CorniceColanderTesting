@@ -6,7 +6,7 @@ import unittest
 import webtest
 
 
-class TestResourceTraverse(unittest.TestCase):
+class TestViews(unittest.TestCase):
 
     def setUp(self):
         self.config = testing.setUp()
@@ -22,7 +22,7 @@ class TestResourceTraverse(unittest.TestCase):
         resp = self.app.get('/fruits/').json
         self.assertEqual(sorted(resp['fruits']), ['1', '2'])
 
-    def test_traverse(self):
+    def test_get(self):
         resp = self.app.get('/fruits/1/')
         self.assertEqual(resp.json, {'name': 'apple'})
 
@@ -30,3 +30,10 @@ class TestResourceTraverse(unittest.TestCase):
         self.assertEqual(resp.json, {'name': 'orange'})
 
         self.app.get('/fruits/3/', status=404)
+
+    def test_post(self):
+        resp = self.app.post('/fruits/', {'name': 'bananas'})
+        self.assertEqual(resp.json, {'name': 'bananas'})
+
+        resp = self.app.get('/fruits/3/')
+        self.assertEqual(resp.json, {'name': 'bananas'})

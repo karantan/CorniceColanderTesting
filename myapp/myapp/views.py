@@ -8,7 +8,7 @@ import colander
 
 @colander.deferred
 def deferred_title_validator(node, kw):
-    request = kw['request']
+    pass
 
 
 class FruitAddSchema(colander.Schema):
@@ -64,4 +64,5 @@ class Fruit(object):
     )
     def collection_post(self):
         """Add fruit to `FRUITS`."""
-        return self.request.validated['name']
+        FRUITS[str(len(FRUITS) + 1)] = {'name': self.request.validated['name']}
+        return FRUITS[str(len(FRUITS))]
