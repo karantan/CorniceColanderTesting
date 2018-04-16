@@ -32,8 +32,21 @@ class TestViews(unittest.TestCase):
         self.app.get('/fruits/3/', status=404)
 
     def test_post(self):
-        resp = self.app.post('/fruits/', {'name': 'bananas'})
-        self.assertEqual(resp.json, {'name': 'bananas'})
+        resp = self.app.post('/fruits/', {'name': 'banana'})
+        self.assertEqual(resp.json, {'name': 'banana'})
 
         resp = self.app.get('/fruits/3/')
-        self.assertEqual(resp.json, {'name': 'bananas'})
+        self.assertEqual(resp.json, {'name': 'banana'})
+
+        resp = self.app.post('/fruits/', {'name': 'mango'}, status=400)
+        self.assertEqual(
+            resp.json,
+            {
+                'status': 'error',
+                'errors': [{
+                    'location': 'body',
+                    'name': None,
+                    'description': 'Wrong fruit.',
+                }],
+            },
+        )

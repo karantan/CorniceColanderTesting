@@ -6,20 +6,33 @@ from cornice.validators import colander_body_validator
 import colander
 
 
-@colander.deferred
-def deferred_title_validator(node, kw):
-    pass
-
-
 class FruitAddSchema(colander.Schema):
     name = colander.SchemaNode(
         colander.String(),
         title='Title',
         description='Fruit name',
-        validator=deferred_title_validator,
     )
 
-FruitPOSTSchema = FruitAddSchema().clone()
+    def validator(self, node, cstruct):
+        request = self.bindings['request']
+        if cstruct['name'] != 'banana':
+            request.errors.add('body', description='Wrong fruit.')
+            # Error can be raised without `request` but we just want to prove
+            # that we have the "real" `request`
+            # self.raise_invalid('Wrong fruit.')
+
+
+def binded_schema(request):
+    FruitPOSTSchema = FruitAddSchema()
+    FruitPOSTSchema = FruitPOSTSchema.bind(request=request)
+    schema = FruitPOSTSchema
+    return schema
+
+
+def body_validator(request, **kwargs):
+    kwargs['schema'] = binded_schema(request)
+    return colander_body_validator(request, **kwargs)
+
 
 # dummy DBs
 FRUITS = {'1': {'name': 'apple'}, '2': {'name': 'orange'}}
@@ -58,10 +71,7 @@ class Fruit(object):
         """Get fruit from `FRUITS`."""
         return self.context
 
-    @view(
-        schema=FruitPOSTSchema,
-        validators=(colander_body_validator,)
-    )
+    @view(validators=(body_validator,))
     def collection_post(self):
         """Add fruit to `FRUITS`."""
         FRUITS[str(len(FRUITS) + 1)] = {'name': self.request.validated['name']}
