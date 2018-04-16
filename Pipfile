@@ -7,6 +7,9 @@ name = "pypi"
 
 [packages]
 
+cornice = "==3.4"
+colander = "==1.4"
+pyramid = "==1.9.1"
 
 
 [dev-packages]
