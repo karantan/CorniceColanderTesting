@@ -22,15 +22,9 @@ class FruitAddSchema(colander.Schema):
             # self.raise_invalid('Wrong fruit.')
 
 
-def binded_schema(request):
-    FruitPOSTSchema = FruitAddSchema()
-    FruitPOSTSchema = FruitPOSTSchema.bind(request=request)
-    schema = FruitPOSTSchema
-    return schema
-
-
 def body_validator(request, **kwargs):
-    kwargs['schema'] = binded_schema(request)
+    FruitPOSTSchema = FruitAddSchema()
+    kwargs['schema'] = FruitPOSTSchema.bind(request=request)
     return colander_body_validator(request, **kwargs)
 
 
