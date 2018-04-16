@@ -10,7 +10,11 @@ name = "pypi"
 cornice = "==3.4"
 colander = "==1.4"
 pyramid = "==1.9.1"
+"07d2cc9" = {path = "myapp", editable = true}
 
 
 [dev-packages]
 
+pytest = "*"
+pdbpp = "*"
+webtest = "*"

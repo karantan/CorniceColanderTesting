@@ -25,7 +25,10 @@ filter = "."
 args = ""
 unit:
 	@find . -name '*.pyc' -delete
-	@pipenv run pytest src/scrooge/tests -k $(filter) $(args)
+	@pipenv run pytest myapp/tests -k $(filter) $(args)
 
 
-.PHONY: help activate unit
+run:
+	@pipenv run pserve --reload myapp/myapp.ini
+
+.PHONY: help activate unit run
