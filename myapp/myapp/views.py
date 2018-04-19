@@ -12,9 +12,39 @@ def deferred_name(node, kw):
 
     def validator(node, name):
         if name != 'banana':
-            request.errors.add('body', description='Wrong fruit.')
+            request.errors.add('body', name=name, description='Wrong fruit.')
 
     return validator
+
+
+@colander.deferred
+def deferred_blacklisted_words(node, kw):
+    request = kw['request']
+
+    def validator(node, description):
+        if description in ['xxx', 'foo', 'bar']:
+            request.errors.add(
+                'body',
+                name=description,
+                description='These words are not allowed.',
+            )
+
+    return validator
+
+
+@colander.deferred
+def deferred_description(node, kw):
+    request = kw['request']
+
+    def validator(node, description):
+        if description == '/':
+            request.errors.add(
+                'body', name=description, description='Invalid description.')
+
+    return colander.All(
+        validator,
+        deferred_blacklisted_words(node, kw),
+    )
 
 
 class FruitAddSchema(colander.Schema):
@@ -25,6 +55,15 @@ class FruitAddSchema(colander.Schema):
         validator=deferred_name,
     )
 
+    description = colander.SchemaNode(
+        colander.String(),
+        title='Description',
+        description='Fruit description',
+        preparer=lambda x: x.lower() if x else x,
+        validator=deferred_description,
+        missing=None,
+    )
+    # Alternatively, instead of using a `deferred` validator, we can do:
     # def validator(self, node, cstruct):
     #     request = self.bindings['request']
     #     if cstruct['name'] != 'banana':
@@ -41,7 +80,10 @@ def body_validator(request, **kwargs):
 
 
 # dummy DBs
-FRUITS = {'1': {'name': 'apple'}, '2': {'name': 'orange'}}
+FRUITS = {
+    '1': {'name': 'apple', 'description': 'sweet, edible fruit'},
+    '2': {'name': 'orange', 'description': 'member of the citrus family'},
+}
 
 
 class FruitFactory(object):
@@ -60,7 +102,7 @@ class FruitFactory(object):
     path='/fruits/{fruit_id}/',
     factory=FruitFactory,
     name='fruit_service',
-    traverse='/{fruit_id}'
+    traverse='/{fruit_id}',
 )
 class Fruit(object):
 
@@ -80,5 +122,13 @@ class Fruit(object):
     @view(validators=(body_validator,))
     def collection_post(self):
         """Add fruit to `FRUITS`."""
-        FRUITS[str(len(FRUITS) + 1)] = {'name': self.request.validated['name']}
+        FRUITS[str(len(FRUITS) + 1)] = {
+            'name': self.request.validated['name'],
+            'description': self.request.validated['description'],
+        }
+
+        self.request.response.status_code = 201
+        self.request.response.headers['Location'] = self.request.route_path(
+            'fruit_service', fruit_id=len(FRUITS))
+
         return FRUITS[str(len(FRUITS))]
