@@ -47,22 +47,32 @@ def deferred_description(node, kw):
     )
 
 
-class FruitAddSchema(colander.Schema):
+class DescriptionSchema(colander.Schema):
+    title = colander.SchemaNode(
+        colander.String(),
+        title='Title',
+        description='Fruit description - title',
+        missing=None,
+    )
+    body = colander.SchemaNode(
+        colander.String(),
+        title='Description',
+        description='Fruit description - body',
+        preparer=lambda x: x.lower() if x else x,
+        validator=deferred_description,
+        missing=None,
+    )
+
+
+class FruitSchema(colander.Schema):
     name = colander.SchemaNode(
         colander.String(),
         title='Title',
         description='Fruit name',
         validator=deferred_name,
     )
+    info = DescriptionSchema(missing=None)
 
-    description = colander.SchemaNode(
-        colander.String(),
-        title='Description',
-        description='Fruit description',
-        preparer=lambda x: x.lower() if x else x,
-        validator=deferred_description,
-        missing=None,
-    )
     # Alternatively, instead of using a `deferred` validator, we can do:
     # def validator(self, node, cstruct):
     #     request = self.bindings['request']
@@ -74,8 +84,8 @@ class FruitAddSchema(colander.Schema):
 
 
 def body_validator(request, **kwargs):
-    FruitPOSTSchema = FruitAddSchema()
-    kwargs['schema'] = FruitPOSTSchema.bind(request=request)
+    schema = FruitSchema()
+    kwargs['schema'] = schema.bind(request=request)
     return colander_body_validator(request, **kwargs)
 
 
@@ -122,11 +132,27 @@ class Fruit(object):
     @view(validators=(body_validator,))
     def collection_post(self):
         """Add fruit to `FRUITS`."""
-        FRUITS[str(len(FRUITS) + 1)] = {
-            'name': self.request.validated['name'],
-            'description': self.request.validated['description'],
-        }
 
+        """
+        If you want flatten result from `self.request`:
+        BUT then you need to handle `.deserialize` exceptions yourself
+
+        Example:
+
+        schema = FruitSchema().bind(request=self.request)
+
+        try:
+            appstruct = schema.deserialize(self.request.validated)
+        except colander.Invalid as err:
+            errors = err.asdict()
+            for attribute in errors:
+                self.request.errors.add(
+                    'url', name=attribute, description=errors.get(attribute))
+            return self.request
+
+        FRUITS[str(len(FRUITS) + 1)] = schema.flatten(appstruct)
+        """
+        FRUITS[str(len(FRUITS) + 1)] = self.request.validated
         self.request.response.status_code = 201
         self.request.response.headers['Location'] = self.request.route_path(
             'fruit_service', fruit_id=len(FRUITS))

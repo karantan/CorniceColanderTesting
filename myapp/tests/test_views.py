@@ -37,35 +37,44 @@ class TestViews(unittest.TestCase):
 
         self.app.get('/fruits/3/', status=404)
 
-    def test_post(self):
+    def test_post_no_info(self):
         resp = self.app.post('/fruits/', {'name': 'banana'})
-        self.assertEqual(resp.json, {'name': 'banana', 'description': None})
+        self.assertEqual(resp.json, {'name': 'banana', 'info': None})
         self.assertEqual(resp.status_code, 201)
         self.assertEqual(resp.content_type, 'application/json')
         self.assertEqual(
             resp.headers['Location'], 'http://localhost/fruits/3/')
 
-        resp = self.app.post(
-            '/fruits/', {'name': 'banana', 'description': 'Test Stuff'})
+    def test_post_with_info(self):
+        resp = self.app.post_json(
+            '/fruits/', {'name': 'banana', 'info': {
+                'title': 'foo', 'body': 'Test Stuff'},
+            },
+        )
+        self.assertEqual(resp.status_code, 201)
         self.assertEqual(
-            resp.json, {'name': 'banana', 'description': 'test stuff'})
+            resp.headers['Location'], 'http://localhost/fruits/4/')
 
+    def test_post_400(self):
         resp = self.app.post('/fruits/', {'name': 'mango'}, status=400)
-        resp = self.app.post(
-            '/fruits/', {'name': 'mango', 'description': '/'}, status=400)
+        resp = self.app.post_json(
+            '/fruits/',
+            {'name': 'mango', 'info': {'body': '/'}},
+            status=400,
+        )
 
         self.assertEqual(
             resp.json,
             {
                 'status': 'error',
                 'errors': [{
+                    'description': 'Wrong fruit.',
                     'location': 'body',
                     'name': 'mango',
-                    'description': 'Wrong fruit.',
                 }, {
+                    'description': 'Invalid description.',
                     'location': 'body',
                     'name': '/',
-                    'description': 'Invalid description.',
                 }],
             },
         )
