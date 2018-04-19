@@ -6,20 +6,32 @@ from cornice.validators import colander_body_validator
 import colander
 
 
+@colander.deferred
+def deferred_name(node, kw):
+    request = kw['request']
+
+    def validator(node, name):
+        if name != 'banana':
+            request.errors.add('body', description='Wrong fruit.')
+
+    return validator
+
+
 class FruitAddSchema(colander.Schema):
     name = colander.SchemaNode(
         colander.String(),
         title='Title',
         description='Fruit name',
+        validator=deferred_name,
     )
 
-    def validator(self, node, cstruct):
-        request = self.bindings['request']
-        if cstruct['name'] != 'banana':
-            request.errors.add('body', description='Wrong fruit.')
-            # Error can be raised without `request` but we just want to prove
-            # that we have the "real" `request`
-            # self.raise_invalid('Wrong fruit.')
+    # def validator(self, node, cstruct):
+    #     request = self.bindings['request']
+    #     if cstruct['name'] != 'banana':
+    #         request.errors.add('body', description='Wrong fruit.')
+    #         # Error can be raised without `request` but we just want to prove
+    #         # that we have the "real" `request`
+    #         # self.raise_invalid('Wrong fruit.')
 
 
 def body_validator(request, **kwargs):
