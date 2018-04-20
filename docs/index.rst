@@ -12,7 +12,7 @@ My **Cool** app provides a way to send cool stuff to the server!
 
 .. cornice-autodoc::
    :app: myapp
-   :services: get, collection_get, collection_post
+   :services: fruit_service, collection_fruit_service
 
 
 

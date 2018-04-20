@@ -139,19 +139,22 @@ class Fruit(object):
 
         Example:
 
-        schema = FruitSchema().bind(request=self.request)
+        .. code-block:: python
 
-        try:
-            appstruct = schema.deserialize(self.request.validated)
-        except colander.Invalid as err:
-            errors = err.asdict()
-            for attribute in errors:
-                self.request.errors.add(
-                    'url', name=attribute, description=errors.get(attribute))
-            return self.request
+            schema = FruitSchema().bind(request=self.request)
 
-        FRUITS[str(len(FRUITS) + 1)] = schema.flatten(appstruct)
-        """
+            try:
+                appstruct = schema.deserialize(self.request.validated)
+            except colander.Invalid as err:
+                errors = err.asdict()
+                for attribute in errors:
+                    self.request.errors.add(
+                        'url', name=attribute, description=errors.get(attribute))
+                return self.request
+
+            FRUITS[str(len(FRUITS) + 1)] = schema.flatten(appstruct)
+        """  # noqa
+
         FRUITS[str(len(FRUITS) + 1)] = self.request.validated
         self.request.response.status_code = 201
         self.request.response.headers['Location'] = self.request.route_path(
