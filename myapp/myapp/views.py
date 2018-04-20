@@ -8,6 +8,7 @@ import colander
 
 @colander.deferred
 def deferred_name(node, kw):
+    """Only 'banana' fruit is allowed."""
     request = kw['request']
 
     def validator(node, name):
@@ -131,9 +132,8 @@ class Fruit(object):
 
     @view(validators=(body_validator,))
     def collection_post(self):
-        """Add fruit to `FRUITS`."""
+        """Add fruit to `FRUITS`.
 
-        """
         If you want flatten result from `self.request`:
         BUT then you need to handle `.deserialize` exceptions yourself
 
