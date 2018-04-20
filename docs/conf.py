@@ -16,7 +16,13 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+import cornice
+import os
 import pkg_resources
+import sys
+
+sys.path.insert(0, os.path.abspath(cornice.__file__))
+
 
 # -- Project information -----------------------------------------------------
 
@@ -41,6 +47,7 @@ release = version
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'cornice_sphinx',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
