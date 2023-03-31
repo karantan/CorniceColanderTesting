@@ -8,7 +8,7 @@ name = "pypi"
 [packages]
 
 cornice = "==3.4"
-colander = "==1.4"
+colander = "==1.7.0"
 pyramid = "==1.9.1"
 "07d2cc9" = {path = "myapp", editable = true}
 
